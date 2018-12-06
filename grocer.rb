@@ -16,10 +16,9 @@ end
 def apply_coupons(cart, coupons)
   new_cart = {}
   new_cart.merge!(cart)
-  #coupon_veg_name = coupons[0]
   coupons.each do |coupon_index|
     cart.each do |veg_name_key, price_clearance_hash|
-      if veg_name_key == coupon_index[:item]
+      if veg_name_key == coupon_index[:item] && new_cart[veg_name_key][:count] >= coupon_index[:num]
         if new_cart["#{veg_name_key} W/COUPON"] == nil
           new_cart["#{veg_name_key} W/COUPON"] = {
             :price => coupon_index[:cost],
@@ -43,8 +42,18 @@ def apply_clearance(cart)
       traits_hash[:price] = (0.8 * traits_hash[:price]).round(2)
     end
   end
+  new_cart
 end
 
 def checkout(cart, coupons)
-  # code here
+  consolidated_cart = consolidate_cart(cart)
+  ready_cart = apply_clearance(apply_coupons(consolidated_cart, coupons))
+  cart_total = 0
+  ready_cart.each do |item_name, traits_hash|
+    cart_total += (traits_hash[:price] * traits_hash[:count])
+  end
+  if cart_total > 100
+    cart_total = (cart_total * 0.9)
+  end
+  cart_total
 end
